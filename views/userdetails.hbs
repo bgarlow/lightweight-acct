@@ -1,0 +1,141 @@
+<!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
+<script>
+  let selectedUserId;
+  
+  function selectUser(userId) {
+    selectedUserId = userId;
+    console.log(selectedUserId);
+    
+    window.location.href = '/users/:userId';   
+  }
+  
+</script>
+<!DOCTYPE html>
+<html>
+  {{> head }}
+  <body class="center">
+    <header>
+    {{> navbar currentUserId=currentUserId}}  
+      <h1>
+        Users Details
+      </h1>
+    </header>
+    <main>
+    
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">User ID: {{json.id}}</h1>
+        <div class="row">
+          <div class="col-sm-2">
+            Login:
+          </div>
+          <div class="col-sm-4">
+            {{json.profile.login}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-2">
+            Name:
+          </div>
+          <div class="col-sm-4">
+            {{json.profile.firstName}} {{json.profile.lastName}}
+          </div>     
+        </div>  
+        <div class="row">
+          <div class="col-sm-2">
+            Account Type:
+          </div>
+          <div class="col-sm-4">
+            {{json.profile.account_type}}
+          </div>     
+        </div>          
+      </div>
+    </div>
+          
+    
+      {{json linkedObjectsArray}}
+      
+      <div>
+        space
+      </div>
+      {{#each linkedObjectsArray}}
+      <div> 
+        <div class="row">
+          <div class="col-sm">
+            
+            <div class="jumbotron jumbotron-fluid">
+              <div class="container">
+                <h3 class="display-3">User ID: {{id}}</h3>
+                <div class="row">
+                  <div class="col-sm-2">
+                    Description:
+                  </div>
+                  <div class="col-sm-4">
+                    {{profile.account_description}}
+                  </div>     
+                </div>  
+                <div class="row">
+                  <div class="col-sm-2">
+                    Account Type:
+                  </div>
+                  <div class="col-sm-4">
+                    {{profile.account_type}}
+                  </div>     
+                </div>   
+                <div class="row">                
+                  <div class="col-sm-2">
+                    Login:
+                  </div>
+                  <div class="col-sm-4">
+                    {{profile.login}}
+                  </div>
+                </div>
+                
+                <div class="row">                
+                  <div class="col-sm-2">
+                    Suspend:
+                  </div>
+                  <div class="col-sm">
+                    {{_links.suspend.method}} {{_links.suspend.href}}
+                  </div>
+                </div>
+                
+                <div class="row">                
+                  <div class="col-sm-2">
+                    Deactivate:
+                  </div>
+                  <div class="col-sm">
+                    {{_links.deactivate.method}} {{_links.deactivate.href}}
+                  </div>
+                </div>                
+                
+              </div>              
+            </div>    
+
+          </div>
+        </div>          
+      </div>
+      {{/each}}
+      
+ 
+
+      
+    </main>
+    
+    
+    <!-- footer -->
+    <div class="fixed-bottom">
+      <div class="jumbotron-fluid">
+        <div class="row">
+          <div class="col-sm-2 teensy-print">Linked Objects:</div>
+          <div class="col-sm teensy-print"><pre>{{json linkedObjects}}</pre></div>
+        </div>        
+        <div class="row">
+          <div class="col-sm-2 teensy-print">Glitch:</div>
+          <div class="col-sm teensy-print"></div>
+        </div>
+      </div>
+    </div>    
+    
+  </body>
+</html>

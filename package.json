@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.17.1",
+    "hbs": "^4.0.4",
+    "request": "^2.88.0"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/handlebars-setup-example"
+  },
+  "license": "MIT"
+}

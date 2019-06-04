@@ -1,0 +1,46 @@
+<!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
+<script>
+  let selectedUserId;
+  
+  function selectUser(userId) {
+    selectedUserId = userId;
+    console.log(selectedUserId);
+    
+    window.location.href = `/users/${selectedUserId}`;   
+  }
+  
+</script>
+<!DOCTYPE html>
+<html>
+  {{> head }}
+  <body class="center">
+    <header>
+    {{> navbar currentUserId=currentUserId}}  
+      <h1>
+        Users
+      </h1>
+    </header>
+    <main>
+      
+      <div> 
+        {{#each json}}
+        <div class="row">
+          <div class="col-sm-3">
+            <a href="#" onclick="selectUser('{{id}}');">{{id}}</a>         
+          </div>          
+          <div class="col-sm-4">
+            {{profile.login}}
+          </div>
+          <div class="col-sm-4">
+            {{profile.firstName}} {{profile.lastName}}
+          </div>
+        </div>
+        {{/each}}
+      </div>
+      
+ 
+
+      
+    </main>
+  </body>
+</html>

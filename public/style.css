@@ -1,0 +1,45 @@
+/* styles */
+/* called by your view template */
+
+/* You might want to try something fancier: */
+/* less: http://lesscss.org/ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #333;
+  font-family: helvetica, arial, sans-serif;
+}
+
+h1 {
+  font-weight: bold;
+  color: #222;
+}
+
+p, li {
+  //max-width: 600px;
+}
+
+li {
+  margin-bottom: 5px;
+}
+
+pre {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.glitchButton {
+  float:Right;
+}
+
+.center {
+    //margin: auto;
+    //max-width: 800px;
+    padding: 25px;
+}
