@@ -1,12 +1,8 @@
 <!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
 <script>
-  let selectedUserId;
-  
-  function selectUser(userId) {
-    selectedUserId = userId;
-    console.log(selectedUserId);
-    
-    window.location.href = '/users/:userId';   
+ 
+  function revokeToken(userId, clientId, tokenId) {
+    window.location.href = `/revoke/${userId}/${clientId}/${tokenId}`;
   }
   
 </script>
@@ -51,13 +47,7 @@
         </div>          
       </div>
     </div>
-          
-    
-      {{json linkedObjectsArray}}
-      
-      <div>
-        space
-      </div>
+           
       {{#each linkedObjectsArray}}
       <div> 
         <div class="row">
@@ -65,13 +55,13 @@
             
             <div class="jumbotron jumbotron-fluid">
               <div class="container">
-                <h3 class="display-3">User ID: {{id}}</h3>
+                <h3 class="display-5">User ID: {{linkedObject.id}}</h3>
                 <div class="row">
                   <div class="col-sm-2">
                     Description:
                   </div>
                   <div class="col-sm-4">
-                    {{profile.account_description}}
+                    {{linkedObject.profile.account_description}}
                   </div>     
                 </div>  
                 <div class="row">
@@ -79,7 +69,7 @@
                     Account Type:
                   </div>
                   <div class="col-sm-4">
-                    {{profile.account_type}}
+                    {{linkedObject.profile.account_type}}
                   </div>     
                 </div>   
                 <div class="row">                
@@ -87,7 +77,7 @@
                     Login:
                   </div>
                   <div class="col-sm-4">
-                    {{profile.login}}
+                    {{linkedObject.profile.login}}
                   </div>
                 </div>
                 
@@ -96,7 +86,7 @@
                     Suspend:
                   </div>
                   <div class="col-sm">
-                    {{_links.suspend.method}} {{_links.suspend.href}}
+                    {{linkedObject._links.suspend.method}} {{linkedObject._links.suspend.href}}
                   </div>
                 </div>
                 
@@ -105,9 +95,79 @@
                     Deactivate:
                   </div>
                   <div class="col-sm">
-                    {{_links.deactivate.method}} {{_links.deactivate.href}}
+                    {{linkedObject._links.deactivate.method}} {{linkedObject._links.deactivate.href}}
                   </div>
-                </div>                
+                </div>          
+                
+                {{#each tokens}}
+                <hr class="my-4">
+                <div class="row">                
+                  <div class="col-sm-2">
+                    Token:
+                  </div>
+                  <div class="col-sm">
+                    {{id}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-2">
+                    Status:
+                  </div>
+                  <div class="col-sm">
+                    {{status}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-2">
+                    Created:
+                  </div>
+                  <div class="col-sm">
+                    {{created}}
+                  </div>
+                </div>    
+                <div class="row">
+                  <div class="col-sm-2">
+                    Expires At:
+                  </div>
+                  <div class="col-sm">
+                    {{expiresAt}}
+                  </div>
+                </div>   
+                <div class="row">
+                  <div class="col-sm-2">
+                    Issuer:
+                  </div>
+                  <div class="col-sm">
+                    {{issuer}}
+                  </div>
+                </div>                 
+                <div class="row">
+                  <div class="col-sm-2">
+                    Client:
+                  </div>
+                  <div class="col-sm">
+                    {{_links.client.title}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-2">
+                    Scopes:
+                  </div>
+                  <div class="col-sm">
+                    {{scopes}}
+                  </div>
+                </div>       
+                <div class="row">
+                  <div class="col-sm-2">
+                    Revoke:
+                  </div>
+                  <div class="col-sm">
+                    {{_links.revoke.hints.allow}} <a href="#" onclick="revokeToken('{{userId}}', '{{clientId}}', '{{id}}')">{{_links.revoke.href}}</a>
+                  </div>
+                </div>                   
+                
+                {{/each}}
+                
                 
               </div>              
             </div>    
