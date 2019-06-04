@@ -42,6 +42,49 @@ app.get("/", (req, res) => {
   res.render('index', data);
 });
 
+
+/**
+*
+* /revoke
+*
+**/
+app.get('/revoke/:userId/:clientId/:tokenId', async function(req, res) {
+  
+  console.log(`/revoke`);
+  
+  let data = {};
+  
+  let userId = req.params.userId;
+  let clientId = req.params.clientId;
+  let tokenId = req.params.tokenId;
+    
+  //https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul70ug4pY3zKSvD0h7/clients/0oal1up3zfMqyEUHK0h7/tokens/oarbv8riiG7rIocUT0h6
+  let options = {
+    uri: `${process.env.OKTA_TENANT}/api/v1/users/${userId}/clients/${clientId}/tokens/${tokenId}`,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+    }
+  }  
+  
+  console.log(`DEMO> Revoking token ${tokenId} for user ${userId} for client ${clientId}`);
+  console.log(JSON.stringify(options, undefined, 2));  
+    
+  try {
+    let res = await doRequest(options);
+    console.log(`Response...`);
+    console.log(res.statusCode);
+  } catch(err) {
+    data = err;
+  }    
+  
+  res.redirect(301,`/users/${currentUserId}`);
+  
+});
+
 /** 
 *
 * /users
@@ -50,7 +93,8 @@ app.get("/", (req, res) => {
 app.get("/users", async function(req, res) {
   
   let data = {};
-  const options = {
+  
+  let options = {
     uri: `${process.env.OKTA_TENANT}/api/v1/users`,
     method: 'GET',
     headers: {
@@ -61,16 +105,92 @@ app.get("/users", async function(req, res) {
     }
   }
   
+  console.log(`DEMO> Get a list of all users in the Okta tenant:`);
+  console.log(JSON.stringify(options, undefined, 2));
+  
   try {
     let res = await doRequest(options);
-    data.json = JSON.parse(res);
+    data.users = JSON.parse(res);
   } catch(err) {
     data = err;
   }  
   
-  data.currentUserId = currentUserId;
+  console.log(`DEMO> Get account_owner primary relationship for each user (if any):`);
+  console.log(`DEMO> Sample https://sonos-ciam-oie.oktapreview.com/api/v1/users/{{userId}}/linkedObjects/account_owner`);
+    
+  let usersArray=[];
   
-  res.render('users', data);
+ 
+  // Loop over each user and check for a primary and subordinate linked objects
+  // https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul70ug4pY3zKSvD0h7/linkedObjects/account_owner
+  for (let user in data.users) {
+    
+    let theUser = data.users[user];  
+    let userData = {
+      userObject: theUser,
+      accountOwner: {}
+    };
+    let accountOwner={}
+
+    options = {
+        uri: `${oktaConfig.baseUrl}/api/v1/users/${theUser.id}/linkedObjects/account_owner`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+        }
+      }    
+
+      //console.log(`DEMO> Get the primary linked object relationship (account owner) for this user (if any):`);
+      //console.log(JSON.stringify(options, undefined, 2)); 
+    
+      try {
+        let res = await doRequest(options);
+        accountOwner = JSON.parse(res);
+        accountOwner = accountOwner[0];
+      } catch(err) {
+        data.err = err;
+      }     
+       
+      // follow the _link.self.href link (if there is one) to get the account owner Okta profile
+      if (accountOwner) {
+        
+        console.log(accountOwner._links.self.href);
+        
+        options = {
+          uri: `${accountOwner._links.self.href}`,
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+          }
+        }    
+
+        console.log(`DEMO> Get the account owner's Okta profile by following _links.self.href`);
+        console.log(JSON.stringify(options, undefined, 2)); 
+        
+        try {
+          let res = await doRequest(options);
+          userData.accountOwner = JSON.parse(res);
+        } catch(err) {
+          data.err = err;
+        }          
+        
+      }
+      
+      usersArray.push(userData); 
+    
+      console.log(usersArray);
+    
+    }
+  
+    data.currentUserId = currentUserId;
+    data.usersArray = usersArray
+    res.render('users', data);
   
 });
 
@@ -85,6 +205,7 @@ app.get('/users/:userId', async function(req, res) {
  
   let data = {};
   
+  // Get all users
   let options = {
     uri: `${oktaConfig.baseUrl}/api/v1/users/${currentUserId}`,
     method: 'GET',
@@ -96,14 +217,17 @@ app.get('/users/:userId', async function(req, res) {
     }
   }
   
+  console.log(`DEMO> Get user ${currentUserId}:`);
+  console.log(JSON.stringify(options, undefined, 2));
+  
   try {
     let res = await doRequest(options);
     data.json = JSON.parse(res);
   } catch(err) {
     data.err = err;
   }  
-  
-  
+     
+  // Get linked objects for current user
   // https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul6gyvk92rhwD5S0h7/linkedObjects/lightweight_account
   options = {
     uri: `${oktaConfig.baseUrl}/api/v1/users/${currentUserId}/linkedObjects/${oktaConfig.linkedObjectSub}`,
@@ -116,6 +240,9 @@ app.get('/users/:userId', async function(req, res) {
     }
   }
   
+  console.log(`DEMO> Get linked objects associated with ${currentUserId}:`);
+  console.log(JSON.stringify(options, undefined, 2));
+  
   try {
     let res = await doRequest(options);
     data.linkedObjects = JSON.parse(res);
@@ -124,11 +251,12 @@ app.get('/users/:userId', async function(req, res) {
   }  
   
   let linkedObjectsArray=[];
+  // loop over linked objects...
   
- 
   for (let linked in data.linkedObjects) {
     let linkedObject = data.linkedObjects[linked];
-    console.log(linkedObject._links.self.href);
+    
+    // Follow each linked object's self link to get their Okta profile
     options = {
       uri: `${linkedObject._links.self.href}`,
       method: 'GET',
@@ -140,18 +268,52 @@ app.get('/users/:userId', async function(req, res) {
       }
     }    
     
+    console.log(`DEMO> Get linked objects profile data from _links.self.href:`);
+    console.log(JSON.stringify(options, undefined, 2));    
+    
     try {
       let res = await doRequest(options);
-      linkedObjectsArray.push(JSON.parse(res));
+      let linkedObjectData = {
+        linkedObject: JSON.parse(res),
+        tokens: []
+      };
+      linkedObjectsArray.push(linkedObjectData);
     } catch(err) {
       data.err = err;
     }  
     
-    data.linkedObjectsArray = linkedObjectsArray
-    
+    // add each linked object's Okta profile to the linkedObjectsArray to send to the page
+    data.linkedObjectsArray = linkedObjectsArray 
   }
   
-  
+  // loop over the linked objects array and get any active refresh tokens for each user
+  //  https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul7rzstkQ62lnFb0h7/clients/0oal1up3zfMqyEUHK0h7/tokens
+  for (let linked in linkedObjectsArray) {
+    let linkedObject = linkedObjectsArray[linked];
+    
+    options = {
+      uri: `${oktaConfig.baseUrl}/api/v1/users/${linkedObject.linkedObject.id}/clients/${oktaConfig.clientIdLightweight}/tokens`,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+      }
+    }    
+    
+    console.log(`DEMO> Get tokens for user ${linkedObject.linkedObject.id} for client ${oktaConfig.clientIdLightweight}`);
+    console.log(JSON.stringify(options, undefined, 2));     
+    
+    try {
+      let res = await doRequest(options);
+      linkedObjectsArray[linked].tokens = JSON.parse(res);
+    } catch(err) {
+      data.err = err;
+    }         
+   
+  }
+
   res.render('userdetails', data);
   
 });

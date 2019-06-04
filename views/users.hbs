@@ -23,19 +23,43 @@
     <main>
       
       <div> 
-        {{#each json}}
+        
         <div class="row">
           <div class="col-sm-3">
-            <a href="#" onclick="selectUser('{{id}}');">{{id}}</a>         
+            Login
+          </div>             
+          <div class="col-sm-2">
+            User ID  
           </div>          
-          <div class="col-sm-4">
-            {{profile.login}}
+          <div class="col-sm-2">
+            Name
           </div>
-          <div class="col-sm-4">
-            {{profile.firstName}} {{profile.lastName}}
+          <div class="col-sm">
+            Account Owner
+          </div>
+        </div>        
+        
+        {{#each usersArray}}
+            
+        <div class="row">
+          <div class="col-sm-3">
+            {{userObject.profile.login}}
+          </div>             
+          <div class="col-sm-2">
+            <a href="#" onclick="selectUser('{{userObject.id}}');">{{userObject.id}}</a>         
+          </div>          
+          <div class="col-sm-2">
+            {{userObject.profile.firstName}} {{userObject.profile.lastName}}
+          </div>
+          <div class="col-sm">
+            <a href="#" onclick="selectUser('{{accountOwner.id}}');">{{accountOwner.id}}</a> {{accountOwner.profile.login}}
           </div>
         </div>
+        
+        
+        
         {{/each}}
+      
       </div>
       
  
