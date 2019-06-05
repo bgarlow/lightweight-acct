@@ -1,5 +1,14 @@
 <!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
 <script>
+  
+  let selectedUserId;
+  
+  function selectUser(userId) {
+    selectedUserId = userId;
+    console.log(selectedUserId);
+    
+    window.location.href = `/users/${selectedUserId}`;   
+  }  
  
   function revokeToken(userId, clientId, tokenId) {
     window.location.href = `/revoke/${userId}/${clientId}/${tokenId}`;
@@ -17,13 +26,13 @@
     
     <div class="jumbotron jumbotron-fluid">
       <div class="container">
-        <h1 class="display-4">Account Owner: {{json.id}}</h1>
+        <h1 class="display-4">{{json.profile.login}}</h1>
         <div class="row">
           <div class="col-sm-2">
-            Login:
+            Okta ID:
           </div>
           <div class="col-sm-4">
-            {{json.profile.login}}
+            {{json.id}}
           </div>
         </div>
         <div class="row">
@@ -33,7 +42,15 @@
           <div class="col-sm-4">
             {{json.profile.firstName}} {{json.profile.lastName}}
           </div>     
-        </div>  
+        </div>
+        <div class="row">
+          <div class="col-sm-2">
+            Description:
+          </div>
+          <div class="col-sm-4">
+            {{json.profile.account_description}}
+          </div>     
+        </div>          
         <div class="row">
           <div class="col-sm-2">
             Account Type:
@@ -44,6 +61,32 @@
         </div>          
       </div>
     </div>
+      
+    {{#when json.profile.account_type 'eq' "lightweight"}}  
+      
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <p class="lead">Upgrade to a full account</p>
+        
+      <form method="POST" action="/users">
+        <div class="form-group">
+          <input type="text" style="display:block" name="userId" id="userId" value="{{json.id}}">
+          <input type="text" style="display:block" name="accountType" id="accountType" value="full">
+          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" value="{{json.profile.account_description}}">         
+          <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com">
+          <input type="text" class="form-control" name="firstName" id="firstName" placeholder="first name">
+          <input type="text" class="form-control" name="lastName" id="lastName" placeholder="last name">
+          <input type="text" class="form-control" name="mobilePhone" id="mobilePhone" placeholder="mobile phone">              
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>        
+        
+        
+      </div>
+    </div>      
+      
+    {{/when}}
+      
            
       {{#each linkedObjectsArray}}
       <div> 
@@ -52,13 +95,13 @@
             
             <div class="jumbotron jumbotron-fluid">
               <div class="container">
-                <h3 class="display-5">Linked Account: {{linkedObject.id}}</h3>
+                <h3 class="display-5">Linked Account: {{linkedObject.profile.account_description}}</h3>
                 <div class="row">
                   <div class="col-sm-2">
-                    Description:
+                    Okta ID:
                   </div>
                   <div class="col-sm-4">
-                    {{linkedObject.profile.account_description}}
+                    <a href="#" onclick="selectUser('{{linkedObject.id}}');">{{linkedObject.id}}</a>
                   </div>     
                 </div>  
                 <div class="row">
@@ -100,7 +143,7 @@
                 <hr class="my-4">
                 <div class="row">                
                   <div class="col-sm-2">
-                    Token:
+                    Token ID:
                   </div>
                   <div class="col-sm">
                     {{id}}
@@ -176,12 +219,14 @@
       
       
     <div class="jumbotron">
-      <h3 class="display-4">Create a lightweight account</h3>
+      <h3 class="display-5">Create a lightweight account attached to {{json.profile.login}}'s account</h3>
       <p class="lead">Use the form below to create a lightweight account linked to this account.</p>
 
       <form method="POST" action="/users">
         <div class="form-group">
           <input type="text" style="display:block" name="accountOwner" id="accountOwner" value="{{json.id}}">
+          <input type="text" style="display:block" name="accountType" id="accountType" value="lightweight">
+          
           <label for="accountDescription">Description</label>
           <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
           <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
@@ -191,22 +236,7 @@
     </div>       
 
       
-    </main>
-    
-    
-    <!-- footer -->
-    <div class="fixed-bottom">
-      <div class="jumbotron-fluid">
-        <div class="row">
-          <div class="col-sm-2 teensy-print">Linked Objects:</div>
-          <div class="col-sm teensy-print"><pre>{{json linkedObjects}}</pre></div>
-        </div>        
-        <div class="row">
-          <div class="col-sm-2 teensy-print">Glitch:</div>
-          <div class="col-sm teensy-print"></div>
-        </div>
-      </div>
-    </div>    
+    </main>  
     
   </body>
 </html>

@@ -43,10 +43,10 @@
             
         <div class="row">
           <div class="col-sm-3">
-            {{userObject.profile.login}}
+            <a href="#" onclick="selectUser('{{userObject.id}}');">{{userObject.profile.login}}</a>
           </div>             
           <div class="col-sm-2">
-            <a href="#" onclick="selectUser('{{userObject.id}}');">{{userObject.id}}</a>         
+            {{userObject.id}}
           </div>          
           <div class="col-sm-2">
             {{userObject.profile.firstName}} {{userObject.profile.lastName}}
@@ -55,8 +55,6 @@
             <a href="#" onclick="selectUser('{{accountOwner.id}}');">{{accountOwner.id}}</a> {{accountOwner.profile.login}}
           </div>
         </div>
-        
-        
         
         {{/each}}
       
