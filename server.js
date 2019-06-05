@@ -23,6 +23,22 @@ hbs.registerHelper('json', function(context) {
     return JSON.stringify(context);
 });
 
+hbs.registerHelper( "when",function(operand_1, operator, operand_2, options) {
+  var operators = {
+   'eq': function(l,r) { return l == r; },
+   'noteq': function(l,r) { return l != r; },
+   'gt': function(l,r) { return Number(l) > Number(r); },
+   'or': function(l,r) { return l || r; },
+   'and': function(l,r) { return l && r; },
+   '%': function(l,r) { return (l % r) === 0; }
+  }
+  , result = operators[operator](operand_1,operand_2);
+
+  if (result) return options.fn(this);
+  else  return options.inverse(this);
+});
+
+
 // Okta OAuth Config
 const oktaConfig = {
   baseUrl: `${process.env.OKTA_TENANT}`,
@@ -54,55 +70,84 @@ app.post('/debug', (req, res) => {
 
 /**
 *
-* /createLightweight
+* /users (create and update)
 *
 **/
 app.post('/users', async function(req, res) {
   
-  let description = req.body.accountDescription;
-  let accountOwner = req.body.accountOwner;
-  let lightweightAccountId;
-  let data = {};
-  let fakeDomain = 'lightweight.com';
+  let accountType = req.body.accountType; // this will be undefined if we aren't creating a linked account
+  let userId = req.body.userId;  // this will be undefined if we're creating a new account
+  let profileJson = {};
   let options;
+  let data = {};
+  let newAccountId;
+  let accountOwner;
   
-  let pin = Math.floor(100000 + Math.random() * 900000);
-  let identifier = `${pin}@${fakeDomain}`;
-  // https://sonos-ciam-oie.oktapreview.com/api/v1/users?activate=true
-  /*
-    "profile": {
-      "account_description": "Barry",
-      "login": "lightweight@81654aab-d06d-4ea0-91f1-97dc66337c0a.com",
-      "email": "lightweight@86568689-c060-45e6-b30e-a2c16fd3255c.com",
-      "account_type": "lightweight"
+  if (accountType === process.env.LIGHTWEIGHT) {
+    let description = req.body.accountDescription;
+    let fakeDomain = 'lightweight.com';
+    accountOwner = req.body.accountOwner;     
+    
+    let pin = Math.floor(100000 + Math.random() * 900000);
+    let identifier = `${pin}@${fakeDomain}`;
+    // https://sonos-ciam-oie.oktapreview.com/api/v1/users?activate=true
+    /*
+      "profile": {
+        "account_description": "Barry",
+        "login": "lightweight@81654aab-d06d-4ea0-91f1-97dc66337c0a.com",
+        "email": "lightweight@86568689-c060-45e6-b30e-a2c16fd3255c.com",
+        "account_type": "lightweight"
+      }  
+    */ 
+    profileJson = {
+        profile: {
+        account_description: description,
+        login: `${identifier}`,
+        email: `${identifier}`,
+        account_type: process.env.LIGHTWEIGHT
+      }
     }  
-  */
-  
-  let profile = {
-      account_description: description,
-      login: `${identifier}`,
-      email: `${identifier}`,
-      account_type: process.env.LIGHTWEIGHT
-  }
-  
-  let profileJson = {
+  } else {
+
+   /*
+    "profile": {
+    	"account_type": "full",
+        "login": "Barry@mailinator.com",
+        "email": "Barry@mailinator.com",
+        "firstName": "Barry",
+        "lastName": "Dillon",
+        "mobilePhone": "555-415-1337",
+        "streetAddress": "742 Evergreen Terrace",
+        "city": "Springfield",
+        "state": "OR",
+        "zipCode": "97403"
+    } 
+    */ 
+    
+    profileJson = {
       profile: {
-      account_description: description,
-      login: `${identifier}`,
-      email: `${identifier}`,
-      account_type: process.env.LIGHTWEIGHT
+        account_type: process.env.FULL,
+        login: req.body.login,
+        email: req.body.login,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        mobilePhone: req.body.mobilePhone,
+        account_description: req.body.accountDescription
+      }
     }
   }
   
-  let stringifiedProfileJson = JSON.stringify(profileJson);
-
-  console.log(`uri: ${process.env.OKTA_TENANT}/api/v1/users?activate=true`)
+  let apiEndpoint;
   
-  // uri: `${process.env.OKTA_TENANT}/api/v1/users?activate=true`,
-  // uri: `https://lightweight-acct.glitch.me/debug`,
-
+  if (userId) {
+    apiEndpoint = `${process.env.OKTA_TENANT}/api/v1/users/${userId}`
+  } else {
+    `${process.env.OKTA_TENANT}/api/v1/users?activate=true`
+  }
+  
+  
   options = {
-    uri: `${process.env.OKTA_TENANT}/api/v1/users?activate=true`,
+    uri: apiEndpoint,
     method: 'POST',
     json: profileJson,
     headers: {
@@ -119,19 +164,19 @@ app.post('/users', async function(req, res) {
   try {
     let res = await doRequest(options);
     data.json = JSON.parse(JSON.stringify(res));
-    lightweightAccountId = data.json.id;
-    console.log(`lightweightAccountId: ${lightweightAccountId}`);
+    newAccountId = data.json.id;
+    console.log(`newAccountId: ${newAccountId}`);         
   } catch(err) {
     console.log(err);
   }
   
   // If there is an account owner for this lightweight account,
   // we need to link them
-  if (accountOwner && lightweightAccountId) {
+  if (accountOwner && newAccountId) {
    
     // https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul70ug4pY3zKSvD0h7/linkedObjects/account_owner/00ul6gyvk92rhwD5S0h7
     options = {
-      uri: `${process.env.OKTA_TENANT}/api/v1/users/${lightweightAccountId}/linkedObjects/account_owner/${accountOwner}`,
+      uri: `${process.env.OKTA_TENANT}/api/v1/users/${newAccountId}/linkedObjects/account_owner/${accountOwner}`,
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
@@ -152,11 +197,10 @@ app.post('/users', async function(req, res) {
     }      
     
   } else {
-    currentUserId = lightweightAccountId;
+    currentUserId = newAccountId;
   }
   
-  res.sendStatus(200);
-  //res.redirect(301,`/users/${currentUserId}`);
+  res.redirect(301,`/users/${currentUserId}`);
   
 });
 
