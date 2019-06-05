@@ -1,0 +1,44 @@
+<!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
+<script>
+  
+  let selectedUserId;
+  
+  function selectUser(userId) {
+    selectedUserId = userId;
+    console.log(selectedUserId);
+    
+    window.location.href = `/users/${selectedUserId}`;   
+  }  
+ 
+  function revokeToken(userId, clientId, tokenId) {
+    window.location.href = `/revoke/${userId}/${clientId}/${tokenId}`;
+  }
+  
+</script>
+<!DOCTYPE html>
+<html>
+  {{> head }}
+  <body class="center">
+    <header>
+    {{> navbar currentUserId=currentUserId}}  
+    </header>
+    <main>
+        
+    <div class="jumbotron">
+      <h3 class="display-5">Register a new Lightweight Account</h3>
+      <p class="lead">Use the form below to create a lightweight account:</p>
+
+      <form method="POST" action="/users">
+        <div class="form-group">
+          <input type="text" style="display:none" name="accountType" id="accountType" value="lightweight">
+          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
+          <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>          
+        
+    </main>  
+    
+  </body>
+</html>

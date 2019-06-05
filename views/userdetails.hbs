@@ -14,6 +14,11 @@
     window.location.href = `/revoke/${userId}/${clientId}/${tokenId}`;
   }
   
+  function copyToClipboard(textValue) {
+    console.log(textValue);
+    navigator.clipboard.writeText(textValue);
+  }
+  
 </script>
 <!DOCTYPE html>
 <html>
@@ -26,7 +31,21 @@
     
     <div class="jumbotron jumbotron-fluid">
       <div class="container">
-        <h1 class="display-4">{{json.profile.login}}</h1>
+        
+        {{#when json.profile.account_type 'eq' "lightweight"}}  
+        
+        <h1 class="display-4">{{json.profile.account_description}}</h1>
+        
+        {{/when}}
+     
+        {{#when json.profile.account_type 'eq' "full"}}  
+        
+        <h1 class="display-4">{{json.profile.firstName}} {{json.profile.lastName}}</h1>
+        
+        {{/when}}        
+        
+        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{../authorizeUrl.full}}">(click to log in)</a></h1>
+        
         <div class="row">
           <div class="col-sm-2">
             Okta ID:
@@ -70,8 +89,8 @@
         
       <form method="POST" action="/users">
         <div class="form-group">
-          <input type="text" style="display:block" name="userId" id="userId" value="{{json.id}}">
-          <input type="text" style="display:block" name="accountType" id="accountType" value="full">
+          <input type="text" style="display:none" name="userId" id="userId" value="{{json.id}}">
+          <input type="text" style="display:none" name="accountType" id="accountType" value="full">
           <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" value="{{json.profile.account_description}}">         
           <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com">
           <input type="text" class="form-control" name="firstName" id="firstName" placeholder="first name">
@@ -85,25 +104,39 @@
       </div>
     </div>      
       
-    {{/when}}
-      
+    {{/when}}    
            
       {{#each linkedObjectsArray}}
+
       <div> 
         <div class="row">
           <div class="col-sm">
             
             <div class="jumbotron jumbotron-fluid">
               <div class="container">
-                <h3 class="display-5">Linked Account: {{linkedObject.profile.account_description}}</h3>
-                <div class="row">
+                
+                <h3 class="display-4">{{linkedObject.profile.account_description}}</h3>
+
+                {{#when linkedObject.profile.account_type 'eq' "lightweight"}}  
+
+                <h3 class="display-5">Linked Account: {{linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.lightweight}}">(click to log in)</a></h3>
+                
+                {{/when}}
+                
+                
+                {{#when linkedObject.profile.account_type 'eq' "full"}}  
+                
+                <h3 class="display-5">Linked Account: {linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.full}}">{(click to log in)</a></h3>
+                
+                {{/when}}                
+                <div class="row">                
                   <div class="col-sm-2">
-                    Okta ID:
+                    Login:
                   </div>
-                  <div class="col-sm-4">
-                    <a href="#" onclick="selectUser('{{linkedObject.id}}');">{{linkedObject.id}}</a>
-                  </div>     
-                </div>  
+                  <div class="col-sm-5">
+                    <a href="#" onclick="selectUser('{{linkedObject.id}}');">{{linkedObject.id}}</a>&nbsp;(click for user details)
+                  </div>
+                </div>
                 <div class="row">
                   <div class="col-sm-2">
                     Account Type:
@@ -112,14 +145,6 @@
                     {{linkedObject.profile.account_type}}
                   </div>     
                 </div>   
-                <div class="row">                
-                  <div class="col-sm-2">
-                    Login:
-                  </div>
-                  <div class="col-sm-4">
-                    {{linkedObject.profile.login}}
-                  </div>
-                </div>
                 
                 <div class="row">                
                   <div class="col-sm-2">
@@ -224,8 +249,9 @@
 
       <form method="POST" action="/users">
         <div class="form-group">
-          <input type="text" style="display:block" name="accountOwner" id="accountOwner" value="{{json.id}}">
-          <input type="text" style="display:block" name="accountType" id="accountType" value="lightweight">
+          <input type="text" style="display:none" name="accountOwner" id="accountOwner" value="{{json.id}}">
+          <input type="text" style="display:none" name="accountOwnerLogin" id="accountOwnerLogin" value="{{json.profile.login}}">
+          <input type="text" style="display:none" name="accountType" id="accountType" value="lightweight">
           
           <label for="accountDescription">Description</label>
           <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">

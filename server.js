@@ -5,6 +5,8 @@ const router = express.Router();
 const request = require('request');
 const bodyParser = require('body-parser');
 const http = require('http').Server(app);
+const querystring = require('querystring');
+const jws = require('jws');
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
@@ -20,7 +22,7 @@ app.set('view engine', 'hbs');
 app.set('views', __dirname + '/views');
 
 hbs.registerHelper('json', function(context) {
-    return JSON.stringify(context);
+    return JSON.stringify(context, undefined, 2);
 });
 
 hbs.registerHelper( "when",function(operand_1, operator, operand_2, options) {
@@ -38,16 +40,27 @@ hbs.registerHelper( "when",function(operand_1, operator, operand_2, options) {
   else  return options.inverse(this);
 });
 
-
 // Okta OAuth Config
 const oktaConfig = {
   baseUrl: `${process.env.OKTA_TENANT}`,
   clientIdLightweight: process.env.CLIENT_ID_LIGHTWEIGHT,
+  clientSecretLightweight: process.env.CLIENT_SECRET_LIGHTWEIGHT,
   clientIdFull: process.env.CLIENT_ID_FULL,
-  redirectUri: `${process.env.REDIRECT_URI}`,
-  authServerIdLightweight: `${process.env.AUTH_SERVER_ID}`,
+  clientSecretFull: process.env.CLIENT_SECRET_FULL,
+  redirectUriLightweight: `${process.env.REDIRECT_URI_LIGHTWEIGHT}`,
+  redirectUriFull: `${process.env.REDIRECT_URI_FULL}`,
+  authServerId: `${process.env.AUTH_SERVER_ID}`,
+  scopeLightweight: `${process.env.SCOPE_LIGHTWEIGHT}`,
+  scopeFULL: `${process.env.SCOPE_FULL}`,
   linkedObjectSub: `${process.env.LINKED_OBJECT_SUB}`
 }
+
+// TODO: generate real values
+let state = "rando";
+let nonce = "morerando";
+
+const lightweightClientAuthorizeUrl = `${oktaConfig.baseUrl}/oauth2/${oktaConfig.authServerId}/v1/authorize?client_id=${oktaConfig.clientIdLightweight}&response_type=code&scope=${oktaConfig.scopeLightweight} openid profile offline_access&redirect_uri=${oktaConfig.redirectUriLightweight}&state=${state}&nonce=${nonce}`;
+const fullClientAuthorizeUrl = `${oktaConfig.baseUrl}/oauth2/${oktaConfig.authServerId}/v1/authorize?client_id=${oktaConfig.clientIdFull}&response_type=code&scope=${oktaConfig.scopeFull} openid profile offline_access&redirect_uri=${oktaConfig.redirectUriFull}&state=${state}&nonce=${nonce}`;
 
 let currentUserId;
 
@@ -60,6 +73,11 @@ app.get("/", (req, res) => {
   let data = {};
   res.render('index', data);
 });
+
+app.get("/landing", (req, res) => {
+  let data = {};
+  res.render('landing', data);
+})
 
 
 app.post('/debug', (req, res) => {
@@ -83,13 +101,23 @@ app.post('/users', async function(req, res) {
   let newAccountId;
   let accountOwner;
   
+  
   if (accountType === process.env.LIGHTWEIGHT) {
-    let description = req.body.accountDescription;
-    let fakeDomain = 'lightweight.com';
+
     accountOwner = req.body.accountOwner;     
-    
+    let fakeDomain;
+    let accountOwnerLogin
+    let description = req.body.accountDescription;
+
+    if (accountOwner) {
+      accountOwnerLogin = req.body.accountOwnerLogin;
+      fakeDomain = accountOwnerLogin.substring(0, accountOwnerLogin.indexOf('@'));
+    } else {
+      fakeDomain = "sonoslightweight"
+    }
+
     let pin = Math.floor(100000 + Math.random() * 900000);
-    let identifier = `${pin}@${fakeDomain}`;
+    let identifier = `${pin}@${fakeDomain}.com`;
     // https://sonos-ciam-oie.oktapreview.com/api/v1/users?activate=true
     /*
       "profile": {
@@ -142,7 +170,7 @@ app.post('/users', async function(req, res) {
   if (userId) {
     apiEndpoint = `${process.env.OKTA_TENANT}/api/v1/users/${userId}`
   } else {
-    `${process.env.OKTA_TENANT}/api/v1/users?activate=true`
+    apiEndpoint = `${process.env.OKTA_TENANT}/api/v1/users?activate=true`
   }
   
   
@@ -158,7 +186,7 @@ app.post('/users', async function(req, res) {
     }
   }   
   
-  console.log(`DEMO> Creating lightweight account:`);
+  console.log(`DEMO> Creating account:`);
   console.log(JSON.stringify(options, undefined, 2));    
   
   try {
@@ -473,12 +501,138 @@ app.get('/users/:userId', async function(req, res) {
    
   }
 
+  data.authorizeUrl = {};
+  data.authorizeUrl.lightweight = lightweightClientAuthorizeUrl
+  data.authorizeUrl.full = fullClientAuthorizeUrl
+    
   res.render('userdetails', data);
   
 });
 
+/**
+*
+* /fullacct
+*
+**/
+app.get('/fullacct', (req, res) => {
+  let data = {};
+  
+  res.render('fullacct', data);
+});
+
+/**
+*
+* /lightweightacct
+*
+**/
+app.get('/lightweightacct', (req, res) => {
+  let data = {};
+  
+  res.render('lightweightacct', data);
+});
+
+// OAuth 2.0
+
+/**
+*
+* /authorization-code/callback
+* Note: this is a very stripped down version...don't use this in a production system
+*
+*/
+app.get('/authorization-code/lightweight', (req, res) => {
+  
+  console.log('DEMO> GET /authorization-code/callback');
+
+  let data = {};
+  let nonce;
+  let state;
+
+  if (!req.query == {}) {
+    res.redirect(`/home?error=Unknown error in redirect from authorization server. Check Okta system log.`);
+    return;
+  }
+
+  if (req.query.error) {
+    res.redirect(`/home?error=${req.query.error}&error_description=${req.query.error_description}`);
+    return;
+  }
+
+  if (!req.query.code) {
+    res.status(401).location('/home').end(); //send('Required query parameter "code" is missing.').end;
+    return;
+  }
+
+  const query = querystring.stringify({
+    grant_type: 'authorization_code',
+    code: req.query.code,
+    redirect_uri: oktaConfig.redirectUriLightweight,
+    scope: `openId profile offline_access ${oktaConfig.scopeLightweight}`
+  });
+
+  const secret = new Buffer(`${oktaConfig.clientIdLightweight}:${oktaConfig.clientSecretLightweight}`, 'utf8').toString('base64');
+  const options = {
+    url: `${oktaConfig.baseUrl}/oauth2/${oktaConfig.authServerId}/v1/token?${query}`,
+    method: 'POST',
+    headers: {
+        Authorization: `Basic ${secret}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    json: true
+  }
+
+  console.log('DEMO> GET /authorization-code/callback token endpoint request options:');
+  console.log(options);
+
+  // Request token(s)
+  request(options, (err, tokenRes, json) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+    if (json.error) {
+      res.status(401).send(`${json.error}: ${json.error_description}`);
+      return;
+    }
+
+  const decodedIdToken = jws.decode(json.id_token);
+    
+  console.log(decodedIdToken);
+    
+    console.log(JSON.parse(JSON.stringify(decodedIdToken)));
+    
+    
+  if (!decodedIdToken) {
+    res.status(401).send('id_token could not be decoded from response.');
+    return;
+  }
+
+    res.cookie(`${oktaConfig.lighweightClientId}_ID`, json.id_token, false);
+    res.cookie(`${oktaConfig.lighweightClientId}_AT`, json.access_token, false);
+
+    const decodedAccessToken = jws.decode(json.access_token);
+        
+    data.tokens = {};
+    data.tokens.id = json.id_token;
+    data.tokens.access = json.access_token;
+    data.tokens.decoded_id = decodedIdToken;
+    data.tokens.decoded_access = decodedAccessToken;
+      
+    console.log('DEMO> Tokens received and validated');
+    res.render('landing', data);
+
+});
+  
+});
+
+
+
 // Utilities
 
+/**
+*
+* doRequest: handle http requests from our client to Okta
+*
+**/
 function doRequest(url) {
   return new Promise(function (resolve, reject) {
     request(url, function (error, res, body) {
