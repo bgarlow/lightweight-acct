@@ -34,6 +34,14 @@ pre {
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
+pre code {
+  font-size: inherit;
+  color: inherit;
+  overflow-wrap: break-word;
+  color: #999!important;
+  white-space: pre-wrap!important;
+}
+
 .glitchButton {
   float:Right;
 }
