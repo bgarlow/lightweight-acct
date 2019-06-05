@@ -4,6 +4,7 @@ const app = express();
 const router = express.Router();
 const request = require('request');
 const bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser')
 const http = require('http').Server(app);
 const querystring = require('querystring');
 const jws = require('jws');
@@ -13,6 +14,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(cookieParser());
 
 const hbs = require('hbs');
 
@@ -51,9 +53,19 @@ const oktaConfig = {
   redirectUriFull: `${process.env.REDIRECT_URI_FULL}`,
   authServerId: `${process.env.AUTH_SERVER_ID}`,
   scopeLightweight: `${process.env.SCOPE_LIGHTWEIGHT}`,
-  scopeFULL: `${process.env.SCOPE_FULL}`,
-  linkedObjectSub: `${process.env.LINKED_OBJECT_SUB}`
+  scopeFull: `${process.env.SCOPE_FULL}`,
+  linkedObjectSub: `${process.env.LINKED_OBJECT_SUB}`,
+  logoutUri: `${process.env.OKTA_TENANT}/api/v1/sessions/me`
 }
+
+const fullClientIDCookie = `${oktaConfig.clientIdFull}_ID`;
+const lightweightClientIDCookie = `${oktaConfig.clientIdLightweight}_ID`;
+
+const fullClientAccessCookie = `${oktaConfig.clientIdFull}_AT`;
+const lightweightClientAccessCookie = `${oktaConfig.clientIdLightweight}_AT`;
+
+const fullClientRefreshCookie = `${oktaConfig.clientIdFull}_RT`;
+const lightweightClientRefreshCookie = `${oktaConfig.clientIdLightweight}_RT`;
 
 // TODO: generate real values
 let state = "rando";
@@ -69,21 +81,35 @@ let currentUserId;
 * /home
 *
 **/
-app.get("/", (req, res) => {
+app.get("/", async function(req, res) {
   let data = {};
+  
+  data.tokensExist = tokensExist(req);
+  data.logoutUri = oktaConfig.logoutUri;
+  
   res.render('index', data);
 });
 
-app.get("/landing", (req, res) => {
+/**
+*
+* /profile
+*
+**/
+app.get("/profile", async function(req, res) {
+  
   let data = {};
+  data.tokens = getTokensFromStorage(req, res);
+  
+
+  
+  data.tokensExist = tokensExist(req);
+  data.logoutUri = oktaConfig.logoutUri;
   res.render('landing', data);
 })
 
 
 app.post('/debug', (req, res) => {
-  
   console.log(req);
-  
 });
 
 /**
@@ -343,9 +369,7 @@ app.get("/users", async function(req, res) {
        
       // follow the _link.self.href link (if there is one) to get the account owner Okta profile
       if (accountOwner) {
-        
-        console.log(accountOwner._links.self.href);
-        
+                
         options = {
           uri: `${accountOwner._links.self.href}`,
           method: 'GET',
@@ -369,14 +393,14 @@ app.get("/users", async function(req, res) {
         
       }
       
-      usersArray.push(userData); 
-    
-      console.log(usersArray);
-    
+      usersArray.push(userData);     
     }
   
     data.currentUserId = currentUserId;
     data.usersArray = usersArray
+    data.tokensExist = tokensExist(req);
+    data.logoutUri = oktaConfig.logoutUri;
+  
     res.render('users', data);
   
 });
@@ -505,6 +529,8 @@ app.get('/users/:userId', async function(req, res) {
   data.authorizeUrl.lightweight = lightweightClientAuthorizeUrl
   data.authorizeUrl.full = fullClientAuthorizeUrl
     
+  data.tokensExist = tokensExist(req);
+  data.logoutUri = oktaConfig.logoutUri;
   res.render('userdetails', data);
   
 });
@@ -517,6 +543,9 @@ app.get('/users/:userId', async function(req, res) {
 app.get('/fullacct', (req, res) => {
   let data = {};
   
+  data.tokensExist = tokensExist(req);
+  data.logoutUri = oktaConfig.logoutUri;
+  
   res.render('fullacct', data);
 });
 
@@ -528,6 +557,9 @@ app.get('/fullacct', (req, res) => {
 app.get('/lightweightacct', (req, res) => {
   let data = {};
   
+  data.tokensExist = tokensExist(req);
+  data.logoutUri = oktaConfig.logoutUri;
+  
   res.render('lightweightacct', data);
 });
 
@@ -537,12 +569,13 @@ app.get('/lightweightacct', (req, res) => {
 *
 * /authorization-code/callback
 * Note: this is a very stripped down version...don't use this in a production system
+* Note: there are 2 version here because we are dealing with 2 oauth clients and I'm lazy
 *
 */
 app.get('/authorization-code/lightweight', (req, res) => {
   
-  console.log('DEMO> GET /authorization-code/callback');
-
+  console.log('DEMO> GET /authorization-code/lightweight');
+  
   let data = {};
   let nonce;
   let state;
@@ -567,7 +600,7 @@ app.get('/authorization-code/lightweight', (req, res) => {
     code: req.query.code,
     redirect_uri: oktaConfig.redirectUriLightweight,
     scope: `openId profile offline_access ${oktaConfig.scopeLightweight}`
-  });
+    });
 
   const secret = new Buffer(`${oktaConfig.clientIdLightweight}:${oktaConfig.clientSecretLightweight}`, 'utf8').toString('base64');
   const options = {
@@ -594,39 +627,226 @@ app.get('/authorization-code/lightweight', (req, res) => {
       return;
     }
 
-  const decodedIdToken = jws.decode(json.id_token);
-    
-  console.log(decodedIdToken);
-    
-    console.log(JSON.parse(JSON.stringify(decodedIdToken)));
-    
-    
-  if (!decodedIdToken) {
-    res.status(401).send('id_token could not be decoded from response.');
-    return;
-  }
+    const decodedIdToken = jws.decode(json.id_token);
 
-    res.cookie(`${oktaConfig.lighweightClientId}_ID`, json.id_token, false);
-    res.cookie(`${oktaConfig.lighweightClientId}_AT`, json.access_token, false);
+    if (!decodedIdToken) {
+      res.status(401).send('id_token could not be decoded from response.');
+      return;
+    }
 
+    res.cookie(`${oktaConfig.clientIdLightweight}_ID`, json.id_token, false);
+    res.cookie(`${oktaConfig.clientIdLightweight}_AT`, json.access_token, false);
+    
+    if (json.refresh_token) {
+      res.cookie(`${oktaConfig.clientIdLightweight}_RT`, json.refresh_token, false);
+    }
+    
     const decodedAccessToken = jws.decode(json.access_token);
-        
+
     data.tokens = {};
     data.tokens.id = json.id_token;
     data.tokens.access = json.access_token;
+    data.tokens.refresh = json.refresh_token;
     data.tokens.decoded_id = decodedIdToken;
     data.tokens.decoded_access = decodedAccessToken;
-      
+    data.tokensExist = true;
+
     console.log('DEMO> Tokens received and validated');
     res.render('landing', data);
 
+  });
 });
+
+// Full
+app.get('/authorization-code/full', (req, res) => {
   
+  console.log('DEMO> GET /authorization-code/full');
+
+  let data = {};
+  let nonce;
+  let state;
+
+  if (!req.query == {}) {
+    res.redirect(`/home?error=Unknown error in redirect from authorization server. Check Okta system log.`);
+    return;
+  }
+
+  if (req.query.error) {
+    res.redirect(`/home?error=${req.query.error}&error_description=${req.query.error_description}`);
+    return;
+  }
+
+  if (!req.query.code) {
+    res.status(401).location('/home').end(); //send('Required query parameter "code" is missing.').end;
+    return;
+  }
+
+  const query = querystring.stringify({
+    grant_type: 'authorization_code',
+    code: req.query.code,
+    redirect_uri: oktaConfig.redirectUriFull,
+    scope: `openId profile offline_access ${oktaConfig.scopeFull}`
+    });
+
+  const secret = new Buffer(`${oktaConfig.clientIdFull}:${oktaConfig.clientSecretFull}`, 'utf8').toString('base64');
+  const options = {
+    url: `${oktaConfig.baseUrl}/oauth2/${oktaConfig.authServerId}/v1/token?${query}`,
+    method: 'POST',
+    headers: {
+        Authorization: `Basic ${secret}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    json: true
+  }
+
+  console.log('DEMO> GET /authorization-code/full token endpoint request options:');
+  console.log(options);
+
+  // Request token(s)
+  request(options, (err, tokenRes, json) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+    if (json.error) {
+      res.status(401).send(`${json.error}: ${json.error_description}`);
+      return;
+    }
+
+    console.log(json);
+    
+    const decodedIdToken = jws.decode(json.id_token);
+
+    if (!decodedIdToken) {
+      res.status(401).send('id_token could not be decoded from response.');
+      return;
+    }
+
+    res.cookie(`${oktaConfig.clientIdFull}_ID`, json.id_token, false);
+    res.cookie(`${oktaConfig.clientIdFull}_AT`, json.access_token, false);
+    if (json.refresh_token) {
+      res.cookie(`${oktaConfig.clientIdFull}_RT`, json.refresh_token, false);
+    }
+    
+    const decodedAccessToken = jws.decode(json.access_token);
+
+    data.tokens = {};
+    data.tokens.id = json.id_token;
+    data.tokens.access = json.access_token;
+    data.tokens.refresh = json.refresh_token;
+    data.tokens.decoded_id = decodedIdToken;
+    data.tokens.decoded_access = decodedAccessToken;
+
+    console.log('DEMO> Tokens received and validated');
+    res.render('landing', data);
+
+  });
 });
 
 
+/**
+*
+* /tokensExist
+* 
+**/
+app.get('/tokensexist', (req, res) => {
+  
+  let tokensExist = (req.cookies[fullClientIDCookie] || req.cookies[lightweightClientIDCookie]) ? true : false;
+    
+  res.json({tokens: tokensExist});
+});
+
+app.post('/logout', async function(req, res) {
+  
+  let data = {};
+  
+  let lightweightRefreshToken = req.cookies['lighweightClientRefreshCookie'];
+  let fullRefreshToken = req.cookies['fullClientRefreshToken'];
+  
+  // ${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens
+  let secret;
+  let options;
+  
+  // revoke full client refresh token
+  //secret = new Buffer(`${oktaConfig.clientIdLightweight}:${oktaConfig.clientSecretLightweight}`, 'utf8').toString('base64');
+  options = {
+    url: `${oktaConfig.baseUrl}/api/v1/authorizationServers/${oktaConfig.authServerId}/clients/${oktaConfig.clientIdLightweight}/tokens`,
+    method: 'DELETE',
+    headers: {
+        Authorization: `SSWS ${process.env.OKTA_API_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+
+  console.log(`DEMO> Revoking all tokens for ${oktaConfig.clientIdLightweight}`);
+  console.log(options);
+
+  try {
+    let res = await doRequest(options);
+    console.log(res.statusCode);
+  } catch(err) {
+    data.err = err;
+  }    
+  
+  // revoke lightweight client refresh token
+  //secret = new Buffer(`${oktaConfig.clientIdFull}:${oktaConfig.clientSecretFull}`, 'utf8').toString('base64');
+  options = {
+    url: `${oktaConfig.baseUrl}/api/v1/authorizationServers/${oktaConfig.authServerId}/clients/${oktaConfig.clientIdFull}/tokens`,
+    method: 'DELETE',
+    headers: {
+        Authorization: `SSWS ${process.env.OKTA_API_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+
+  console.log(`DEMO> Revoking all tokens for ${oktaConfig.clientIdFull}`);
+  console.log(options);
+
+  try {
+    let res = await doRequest(options);
+    console.log(res.statusCode);
+  } catch(err) {
+    data.err = err;
+  }   
+  
+  res.clearCookie(lightweightClientIDCookie);
+  res.clearCookie(lightweightClientAccessCookie);
+  res.clearCookie(lightweightClientRefreshCookie);
+    
+  res.clearCookie(fullClientIDCookie);
+  res.clearCookie(fullClientAccessCookie);
+  res.clearCookie(fullClientRefreshCookie);
+
+  data.tokensExist = tokensExist(req);
+  
+  res.render('index', data);
+});
 
 // Utilities
+
+function getTokensFromStorage(req, res) {
+  
+  let data = {};
+  
+  let idToken = (req.cookies[fullClientIDCookie]) ? req.cookies[fullClientIDCookie] : req.cookies[lightweightClientIDCookie];
+  let accessToken = (req.cookies[fullClientAccessCookie]) ? req.cookies[fullClientAccessCookie] : req.cookies[lightweightClientAccessCookie];
+  let refreshToken = (req.cookies[fullClientRefreshCookie]) ? req.cookies[fullClientRefreshCookie] : req.cookies[lightweightClientRefreshCookie];
+  
+  data.tokens = {};
+  data.tokens.id = idToken;
+  data.tokens.access = accessToken;
+  data.tokens.refresh = refreshToken;
+  
+  
+  data.tokens.decoded_id = jws.decode(idToken);;
+  data.tokens.decoded_access = jws.decode(accessToken);
+  
+  return data.tokens;
+}
+
+function tokensExist(req) {  
+  return (req.cookies[fullClientIDCookie] || req.cookies[lightweightClientIDCookie]) ? true : false;
+}
 
 /**
 *

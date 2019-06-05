@@ -25,7 +25,7 @@
   {{> head }}
   <body class="center">
     <header>
-    {{> navbar currentUserId=currentUserId}}  
+    {{> navbar sessionExists=tokensExist logoutUri=logoutUri currentUserId=currentUserId}}  
     </header>
     <main>
     
@@ -44,7 +44,7 @@
         
         {{/when}}        
         
-        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{../authorizeUrl.full}}">(click to log in)</a></h1>
+        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.full}}">(click to log in)</a></h1>
         
         <div class="row">
           <div class="col-sm-2">

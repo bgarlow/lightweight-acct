@@ -2,10 +2,10 @@
 
 <!DOCTYPE html>
 <html>
-  {{> head oktaConfig=oktaConfig clientId=clientIdLightweight}}
+  {{> head }}
   <body class="center">
     <header>
-      {{> navbar loginUrlLightweight=loginUrlLightweight }}
+      {{> navbar sessionExists=tokensExist logoutUri=logoutUri}}
       <h1>
          Home
       </h1>
@@ -13,7 +13,6 @@
  
 
     <main>
-
     </main>
   </body>
 </html>
