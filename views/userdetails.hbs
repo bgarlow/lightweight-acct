@@ -12,15 +12,12 @@
   <body class="center">
     <header>
     {{> navbar currentUserId=currentUserId}}  
-      <h1>
-        Users Details
-      </h1>
     </header>
     <main>
     
     <div class="jumbotron jumbotron-fluid">
       <div class="container">
-        <h1 class="display-4">User ID: {{json.id}}</h1>
+        <h1 class="display-4">Account Owner: {{json.id}}</h1>
         <div class="row">
           <div class="col-sm-2">
             Login:
@@ -55,7 +52,7 @@
             
             <div class="jumbotron jumbotron-fluid">
               <div class="container">
-                <h3 class="display-5">User ID: {{linkedObject.id}}</h3>
+                <h3 class="display-5">Linked Account: {{linkedObject.id}}</h3>
                 <div class="row">
                   <div class="col-sm-2">
                     Description:
@@ -177,7 +174,21 @@
       </div>
       {{/each}}
       
- 
+      
+    <div class="jumbotron">
+      <h3 class="display-4">Create a lightweight account</h3>
+      <p class="lead">Use the form below to create a lightweight account linked to this account.</p>
+
+      <form method="POST" action="/users">
+        <div class="form-group">
+          <input type="text" style="display:block" name="accountOwner" id="accountOwner" value="{{json.id}}">
+          <label for="accountDescription">Description</label>
+          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
+          <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>       
 
       
     </main>
