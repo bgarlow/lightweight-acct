@@ -1,3 +1,27 @@
+<script>
+  
+  function logout() {
+    
+    $.ajax({
+        url: '{{logoutUri}}',
+        type: 'DELETE',
+        success: function(result) {
+          console.log(`DEMO> DELETE Okta session`);
+        },
+        error: function(result) {
+          console.log(`DEMO> Error deleting Okta session:`);
+          console.log(result);
+        }
+    });
+    
+    $.post("/logout", function(data, status){
+      console.log(`DEMO> Clear token cookies: ${status}`);
+    });
+    
+  }
+  
+</script>
+
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
   <a class="navbar-brand" href="#">Demo</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,10 +45,18 @@
   </div>
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
+          
+            {{#if tokensExist}}
+          
             <li class="nav-item">
-                <a class="nav-link" href="#">{{currentUserId}}</a>
+                <a class="nav-link" href="/profile">Profile</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="logout();">Logout</a>
+            </li>
+          
+            {{/if}}
+          
         </ul>
     </div>  
 </nav>  
-

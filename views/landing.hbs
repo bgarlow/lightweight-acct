@@ -1,13 +1,16 @@
 <!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
+<script>
+
+</script>
 
 <!DOCTYPE html>
 <html>
   {{> head oktaConfig=oktaConfig clientId=clientIdLightweight}}
   <body class="center">
     <header>
-      {{> navbar loginUrlLightweight=loginUrlLightweight }}
+      {{> navbar sessionExists=tokensExist logoutUri=logoutUri }}
       <h1>
-         Landing
+         Profile
       </h1>
     </header>
  
@@ -16,10 +19,19 @@
     </code>
     </pre>
     
-        <pre><code>
+    <pre><code>
     {{json tokens.decoded_access}}
     </code>
     </pre>
+    
+    <pre><code>
+    {{json tokens.refresh}}
+    </code>
+    </pre>
+    
+    <button onclick="logout()";>
+      Log Out
+    </button>
     
     <main>
 

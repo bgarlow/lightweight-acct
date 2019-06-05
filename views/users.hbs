@@ -15,7 +15,7 @@
   {{> head }}
   <body class="center">
     <header>
-    {{> navbar currentUserId=currentUserId}}  
+    {{> navbar sessionExists=tokensExist logoutUri=logoutUri currentUserId=currentUserId}}  
       <h1>
         Users
       </h1>
