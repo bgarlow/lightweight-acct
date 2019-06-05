@@ -8,6 +8,9 @@ const http = require('http').Server(app);
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 const hbs = require('hbs');
 
@@ -43,6 +46,120 @@ app.get("/", (req, res) => {
 });
 
 
+app.post('/debug', (req, res) => {
+  
+  console.log(req);
+  
+});
+
+/**
+*
+* /createLightweight
+*
+**/
+app.post('/users', async function(req, res) {
+  
+  let description = req.body.accountDescription;
+  let accountOwner = req.body.accountOwner;
+  let lightweightAccountId;
+  let data = {};
+  let fakeDomain = 'lightweight.com';
+  let options;
+  
+  let pin = Math.floor(100000 + Math.random() * 900000);
+  let identifier = `${pin}@${fakeDomain}`;
+  // https://sonos-ciam-oie.oktapreview.com/api/v1/users?activate=true
+  /*
+    "profile": {
+      "account_description": "Barry",
+      "login": "lightweight@81654aab-d06d-4ea0-91f1-97dc66337c0a.com",
+      "email": "lightweight@86568689-c060-45e6-b30e-a2c16fd3255c.com",
+      "account_type": "lightweight"
+    }  
+  */
+  
+  let profile = {
+      account_description: description,
+      login: `${identifier}`,
+      email: `${identifier}`,
+      account_type: process.env.LIGHTWEIGHT
+  }
+  
+  let profileJson = {
+      profile: {
+      account_description: description,
+      login: `${identifier}`,
+      email: `${identifier}`,
+      account_type: process.env.LIGHTWEIGHT
+    }
+  }
+  
+  let stringifiedProfileJson = JSON.stringify(profileJson);
+
+  console.log(`uri: ${process.env.OKTA_TENANT}/api/v1/users?activate=true`)
+  
+  // uri: `${process.env.OKTA_TENANT}/api/v1/users?activate=true`,
+  // uri: `https://lightweight-acct.glitch.me/debug`,
+
+  options = {
+    uri: `${process.env.OKTA_TENANT}/api/v1/users?activate=true`,
+    method: 'POST',
+    json: profileJson,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+    }
+  }   
+  
+  console.log(`DEMO> Creating lightweight account:`);
+  console.log(JSON.stringify(options, undefined, 2));    
+  
+  try {
+    let res = await doRequest(options);
+    data.json = JSON.parse(JSON.stringify(res));
+    lightweightAccountId = data.json.id;
+    console.log(`lightweightAccountId: ${lightweightAccountId}`);
+  } catch(err) {
+    console.log(err);
+  }
+  
+  // If there is an account owner for this lightweight account,
+  // we need to link them
+  if (accountOwner && lightweightAccountId) {
+   
+    // https://sonos-ciam-oie.oktapreview.com/api/v1/users/00ul70ug4pY3zKSvD0h7/linkedObjects/account_owner/00ul6gyvk92rhwD5S0h7
+    options = {
+      uri: `${process.env.OKTA_TENANT}/api/v1/users/${lightweightAccountId}/linkedObjects/account_owner/${accountOwner}`,
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Authorization': `SSWS ${process.env.OKTA_API_KEY}`
+      }
+    }    
+    
+    console.log(`DEMO> Linking lightweight account to the account owner account:`);
+    console.log(JSON.stringify(options, undefined, 2));      
+
+    try {
+      let res = await doRequest(options);
+      console.log(res.statusCode);
+    } catch(err) {
+      console.log(err);
+    }      
+    
+  } else {
+    currentUserId = lightweightAccountId;
+  }
+  
+  res.sendStatus(200);
+  //res.redirect(301,`/users/${currentUserId}`);
+  
+});
+
 /**
 *
 * /revoke
@@ -51,8 +168,6 @@ app.get("/", (req, res) => {
 app.get('/revoke/:userId/:clientId/:tokenId', async function(req, res) {
   
   console.log(`/revoke`);
-  
-  let data = {};
   
   let userId = req.params.userId;
   let clientId = req.params.clientId;
@@ -78,7 +193,7 @@ app.get('/revoke/:userId/:clientId/:tokenId', async function(req, res) {
     console.log(`Response...`);
     console.log(res.statusCode);
   } catch(err) {
-    data = err;
+    console.log(err);
   }    
   
   res.redirect(301,`/users/${currentUserId}`);
@@ -327,13 +442,12 @@ function doRequest(url) {
       if (!error && res.statusCode == 200) {
         resolve(body);
       } else {
+        console.log(res.body);
         reject(error);
       }
     });
   });
 }
-
-
 
 // And we end with some more generic node stuff -- listening for requests :-)
 let listener = app.listen(process.env.PORT, () => {
