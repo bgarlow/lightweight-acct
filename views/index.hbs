@@ -5,14 +5,28 @@
   {{> head }}
   <body class="center">
     <header>
-      {{> navbar sessionExists=tokensExist logoutUri=logoutUri}}
-      <h1>
-         Home
-      </h1>
+      {{> navbar sessionExists=tokensExist logoutUri=logoutUri }}
     </header>
- 
-
+    
     <main>
+    
+    <div class="jumbotron">
+      <h1 class="display-4">Home</h1>
+      <p class="lead">Okta lightweight account and account linking demo</p>
+      <hr class="my-4">
+      <ul>
+        <li>List and view details of all demo users in the POC tenant</li>
+        <li>Register a new full user account</li>
+        <li>Register a new lightweight account (standalone)</li>
+        <li>Register a new lightweight account associated with "primary" account (child or quest account)</li>
+        <li>Upgrade a lightweight account to a full account via progressive profiling</li>
+        <li>Authenticate as any user to receive id, access, and refresh tokens</li>
+        <li>View decoded jwt tokens to see how different policies based on user type affect scopes</li>
+        <li>As a primary account owner, view all associated lightweight accounts</li>
+        <li>As a primary account owner, view (and optionally revoke) any active refresh tokens for associated linked accounts</li>
+      </ul>
+    </div>
+    
     </main>
   </body>
 </html>

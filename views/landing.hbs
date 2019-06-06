@@ -5,31 +5,38 @@
   <body class="center">
     <header>
       {{> navbar sessionExists=tokensExist logoutUri=logoutUri }}
-      <h1>
-         Profile
-      </h1>
+
     </header>
- 
-    <div class="jumbotron jumbotron-fluid">
+    
+    {{#if user}}
+    <div class="jumbotron">
       <div class="container">
         <h1 class="display-4">/userinfo</h1>
         <pre><code>{{json user}}</code></pre>
       </div>
     </div>      
+    {{/if}}
         
-    <div class="jumbotron jumbotron-fluid">
+    <div class="jumbotron">
       <div class="container">
         <h1 class="display-4">ID Token</h1>
         <pre><code><div id="decodedIdToken"></div></code></pre>
       </div>
     </div>    
     
-    <div class="jumbotron jumbotron-fluid">
+    <div class="jumbotron">
       <div class="container">
         <h1 class="display-4">Access Token</h1>
         <pre><code><div id="decodedAccessToken"></div></code></pre>
       </div>
     </div>      
+    
+    <div class="jumbotron">
+      <div class="container">
+        <h1 class="display-4">Refresh Token</h1>
+        <pre><code>{{tokens.refresh}}</pre>
+      </div>
+    </div>        
     
     <main>
 

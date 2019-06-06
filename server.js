@@ -595,7 +595,7 @@ app.get('/lightweightacct', (req, res) => {
 * Note: there are 2 version here because we are dealing with 2 oauth clients and I'm lazy
 *
 */
-app.get('/authorization-code/lightweight', (req, res) => {
+app.get('/authorization-code/lightweight', async function(req, res) {
   
   console.log('DEMO> GET /authorization-code/lightweight');
   
@@ -664,7 +664,7 @@ app.get('/authorization-code/lightweight', (req, res) => {
       res.cookie(`${oktaConfig.clientIdLightweight}_RT`, json.refresh_token, false);
     }
     
-    const decodedAccessToken = jws.decode(json.access_token);
+    const decodedAccessToken = jws.decode(json.access_token);  
 
     data.tokens = {};
     data.tokens.id = json.id_token;
@@ -681,8 +681,12 @@ app.get('/authorization-code/lightweight', (req, res) => {
   });
 });
 
-// Full
-app.get('/authorization-code/full', (req, res) => {
+/**
+*
+* authorization code handler for full account client
+*
+**/
+app.get('/authorization-code/full', async function(req, res) {
   
   console.log('DEMO> GET /authorization-code/full');
 
@@ -760,7 +764,7 @@ app.get('/authorization-code/full', (req, res) => {
     data.tokens.decoded_access = decodedAccessToken;
     data.tokensExist = true;
     data.logoutUri = oktaConfig.logoutUri;    
-
+    
     console.log('DEMO> Tokens received and validated');
     res.render('landing', data);
 
@@ -780,7 +784,7 @@ app.get('/tokensexist', (req, res) => {
   res.json({tokens: tokensExist});
 });
 
-app.post('/logout', async function(req, res) {
+app.get('/logout', async function(req, res) {
   
   let data = {};
   
@@ -842,7 +846,8 @@ app.post('/logout', async function(req, res) {
   res.clearCookie(fullClientRefreshCookie);
 
   data.tokensExist = false;
-  
+  data.logoutUri = oktaConfig.logoutUri;    
+   
   res.render('index', data);
 });
 

@@ -53,13 +53,34 @@ pre code {
     padding: 25px;
 }
 
+/* Bootstrap */
+
 .display-4 {
     font-size: 3rem;
     font-weight: 300;
     line-height: 1;
 }
 
+.jumbotron {
+  margin-bottom: .75rem;
+}
+
 @media (min-width: 576px)
 .jumbotron {
     padding: 2rem;
+}
+
+.navbar {
+  min-height: 100px;
+  margin-bottom: 20px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255,255,255,.8);
+}
+
+.table .thead-dark th {
+    color: #fff;
+    background-color: #343a40;
+    border-color: #32383e;
 }

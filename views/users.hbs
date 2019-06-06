@@ -16,15 +16,16 @@
   <body class="center">
     <header>
     {{> navbar sessionExists=tokensExist logoutUri=logoutUri currentUserId=currentUserId}}  
-      <h1>
-        Users
-      </h1>
     </header>
     <main>
       
-   <table class="table table-striped table-light">
+    <div class="jumbotron">
+      <h1 class="display-4">Users</h1>
+      <p class="lead">Below are all of the users in the sonos-ciam-oie.oktapreview.com Okta tenant with account_type "full" or "lightweight"</p>
 
-    <thead class="thead-dark">
+   <table class="table table-striped table-hover">
+
+    <thead class="thead thead-dark">
       <tr>
         <th scope="col">Login</th>
         <th scope="col">Name</th>
@@ -50,7 +51,11 @@
     {{/each}}
 
     </tbody>
-    </table>
+    </table>      
+      
+      </div>      
+      
+
       
     </main>
   </body>
