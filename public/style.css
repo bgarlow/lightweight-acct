@@ -56,5 +56,10 @@ pre code {
 .display-4 {
     font-size: 3rem;
     font-weight: 300;
-    line-height: 1.2;
+    line-height: 1;
+}
+
+@media (min-width: 576px)
+.jumbotron {
+    padding: 2rem;
 }
