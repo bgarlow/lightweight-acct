@@ -92,21 +92,24 @@
     {{#when json.profile.account_type 'eq' "lightweight"}}  
       
     <div class="jumbotron">
-        <h3 class="display-5">Upgrade to a full account</h3>
-        <p class="lead">Use the form below to provide additional profile information required for a full account.</p>
-       
-      <form method="POST" action="/users">
-        <div class="form-group">
-          <input type="text" style="display:none" name="userId" id="userId" value="{{json.id}}">
-          <input type="text" style="display:none" name="accountType" id="accountType" value="full">
-          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" value="{{json.profile.account_description}}">         
-          <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com">
-          <input type="text" class="form-control" name="firstName" id="firstName" placeholder="first name">
-          <input type="text" class="form-control" name="lastName" id="lastName" placeholder="last name">
-          <input type="text" class="form-control" name="mobilePhone" id="mobilePhone" placeholder="mobile phone">              
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>        
+      <div class="container">
+        <h3 class="display-4">
+          Upgrade to a Lightweight Account
+        </h3>
+        <p class="lead">Provide the additional profile attributes below to convert to a full account</p>
+        <form method="POST" action="/users">
+          <div class="form-group">
+            <input type="text" style="display:none" name="userId" id="userId" value="{{json.id}}">
+            <input type="text" style="display:none" name="accountType" id="accountType" value="full">
+            <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" value="{{json.profile.account_description}}">         
+            <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com">
+            <input type="text" class="form-control" name="firstName" id="firstName" placeholder="first name">
+            <input type="text" class="form-control" name="lastName" id="lastName" placeholder="last name">
+            <input type="text" class="form-control" name="mobilePhone" id="mobilePhone" placeholder="mobile phone">              
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>        
+      </div>
         
     </div>      
       
@@ -132,7 +135,7 @@
                 
                 {{#when linkedObject.profile.account_type 'eq' "full"}}  
                 
-                <h3 class="display-5">Linked Account: {{linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.full}}">{(click to log in)</a></h3>
+                <h3 class="display-5">Linked Account: {{linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.full}}">(click to log in)</a></h3>
                 
                 {{/when}}                
                 <div class="row">                
@@ -140,7 +143,7 @@
                     Login:
                   </div>
                   <div class="col-sm-5">
-                    <a href="#" onclick="selectUser('{{linkedObject.id}}');">{{linkedObject.id}}</a>&nbsp;(click for user details)
+                    {{linkedObject.id}}&nbsp;<a href="#" onclick="selectUser('{{linkedObject.id}}');">(click for user details)</a>
                   </div>
                 </div>
                 <div class="row">
@@ -247,24 +250,26 @@
         </div>          
       </div>
       {{/each}}
-      
-      
-    <div class="jumbotron">
-      <h3 class="display-5">Create a lightweight account attached to {{json.profile.login}}'s account</h3>
-      <p class="lead">Use the form below to create a lightweight account linked to this account.</p>
-
-      <form method="POST" action="/users">
-        <div class="form-group">
-          <input type="text" style="display:none" name="accountOwner" id="accountOwner" value="{{json.id}}">
-          <input type="text" style="display:none" name="accountOwnerLogin" id="accountOwnerLogin" value="{{json.profile.login}}">
-          <input type="text" style="display:none" name="accountType" id="accountType" value="lightweight">
           
-          <label for="accountDescription">Description</label>
-          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
-          <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+
+    <div class="jumbotron">
+      <div class="container">    
+        <h3 class="display-4">Create a lightweight account attached to {{json.profile.login}}'s account</h3>
+        <p class="lead">Use the form below to create a lightweight account linked to this account.</p>
+
+        <form method="POST" action="/users">
+          <div class="form-group">
+            <input type="text" style="display:none" name="accountOwner" id="accountOwner" value="{{json.id}}">
+            <input type="text" style="display:none" name="accountOwnerLogin" id="accountOwnerLogin" value="{{json.profile.login}}">
+            <input type="text" style="display:none" name="accountType" id="accountType" value="lightweight">
+
+            <label for="accountDescription">Description</label>
+            <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
+            <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
     </div>       
       
       

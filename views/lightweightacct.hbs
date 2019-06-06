@@ -25,17 +25,21 @@
     <main>
         
     <div class="jumbotron">
-      <h3 class="display-5">Register a new Lightweight Account</h3>
-      <p class="lead">Use the form below to create a lightweight account:</p>
-
+      <div class="container">
+        <h3 class="display-4">
+          Register a Lightweight Account
+        </h3>
+        <p class="lead">Fill in the form below to register a lightweight account</p>
+        
       <form method="POST" action="/users">
         <div class="form-group">
           <input type="text" style="display:none" name="accountType" id="accountType" value="lightweight">
-          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3">
+          <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="e.g. Bobby's iPad 3" required="true">
           <small id="accountDescriptionHelp" class="form-text text-muted">Enter a brief description for this lightweight account.</small>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
+      </div>
     </div>          
         
     </main>  

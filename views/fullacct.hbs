@@ -24,18 +24,18 @@
     </header>
     <main>
         
-    <div class="jumbotron jumbotron-fluid">
+    <div class="jumbotron">
       <div class="container">
         <h3 class="display-4">
           Register a Full Account
         </h3>
-        <p class="lead">Fill in the form below to register a full account:</p>
+        <p class="lead">Fill in the form below to register a full account</p>
         
       <form method="POST" action="/users">
         <div class="form-group">
           <input type="text" style="display:none" name="accountType" id="accountType" value="full">
           <input type="text" class="form-control" id="accountDescription" name="accountDescription" aria-describedby="accountDescriptionHelp" placeholder="account description">         
-          <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com">
+          <input type="text" class="form-control" name="login" id="login" placeholder="username e.g. bob@mailinator.com" required="true">
           <input type="text" class="form-control" name="firstName" id="firstName" placeholder="first name">
           <input type="text" class="form-control" name="lastName" id="lastName" placeholder="last name">
           <input type="text" class="form-control" name="mobilePhone" id="mobilePhone" placeholder="mobile phone">              
