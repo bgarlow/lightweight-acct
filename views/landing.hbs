@@ -1,8 +1,4 @@
 <!-- It's a handlebars template! hbs(handlebars): http://handlebarsjs.com/ -->
-<script>
-
-</script>
-
 <!DOCTYPE html>
 <html>
   {{> head oktaConfig=oktaConfig clientId=clientIdLightweight}}
@@ -14,27 +10,51 @@
       </h1>
     </header>
  
-    <pre><code>
-    {{json tokens.decoded_id}}
-    </code>
-    </pre>
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">/userinfo</h1>
+        <pre><code>{{json user}}</code></pre>
+      </div>
+    </div>      
+        
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">ID Token</h1>
+        <pre><code><div id="decodedIdToken"></div></code></pre>
+      </div>
+    </div>    
     
-    <pre><code>
-    {{json tokens.decoded_access}}
-    </code>
-    </pre>
-    
-    <pre><code>
-    {{json tokens.refresh}}
-    </code>
-    </pre>
-    
-    <button onclick="logout()";>
-      Log Out
-    </button>
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">Access Token</h1>
+        <pre><code><div id="decodedAccessToken"></div></code></pre>
+      </div>
+    </div>      
     
     <main>
 
     </main>
   </body>
+  
+  <script>
+
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace('-', '+').replace('_', '/');
+      const decoded = window.atob(base64);
+      const decodedJSON = JSON.parse(decoded);
+
+      return decodedJSON;
+    }
+
+    let idToken = parseJwt('{{json tokens.id}}');
+    document.getElementById('decodedIdToken').innerHTML = JSON.stringify(idToken, undefined, 2);
+    
+    let accessToken = parseJwt('{{json tokens.access}}');
+    document.getElementById('decodedAccessToken').innerHTML = JSON.stringify(accessToken, undefined, 2);    
+
+  </script>
+  
+  
+  
 </html>
