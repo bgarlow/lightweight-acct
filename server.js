@@ -90,8 +90,6 @@ app.get("/", async function(req, res) {
   res.render('index', data);
 });
 
-
-
 /**
 *
 * /profile
@@ -553,6 +551,7 @@ app.get('/users/:userId', async function(req, res) {
     
   data.tokensExist = tokensExist(req);
   data.logoutUri = oktaConfig.logoutUri;
+  
   res.render('userdetails', data);
   
 });
@@ -674,6 +673,7 @@ app.get('/authorization-code/lightweight', (req, res) => {
     data.tokens.decoded_id = decodedIdToken;
     data.tokens.decoded_access = decodedAccessToken;
     data.tokensExist = true;
+    data.logoutUri = oktaConfig.logoutUri;    
 
     console.log('DEMO> Tokens received and validated');
     res.render('landing', data);
@@ -758,6 +758,8 @@ app.get('/authorization-code/full', (req, res) => {
     data.tokens.refresh = json.refresh_token;
     data.tokens.decoded_id = decodedIdToken;
     data.tokens.decoded_access = decodedAccessToken;
+    data.tokensExist = true;
+    data.logoutUri = oktaConfig.logoutUri;    
 
     console.log('DEMO> Tokens received and validated');
     res.render('landing', data);
@@ -839,7 +841,7 @@ app.post('/logout', async function(req, res) {
   res.clearCookie(fullClientAccessCookie);
   res.clearCookie(fullClientRefreshCookie);
 
-  data.tokensExist = tokensExist(req);
+  data.tokensExist = false;
   
   res.render('index', data);
 });

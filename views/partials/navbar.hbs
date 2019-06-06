@@ -4,16 +4,20 @@
     
     $.ajax({
         url: '{{logoutUri}}',
+        xhrFields: {
+            withCredentials: true
+        },      
         type: 'DELETE',
         success: function(result) {
           console.log(`DEMO> DELETE Okta session`);
+          console.log(`DELETE {{logoutUri}}`);
         },
         error: function(result) {
           console.log(`DEMO> Error deleting Okta session:`);
           console.log(result);
         }
     });
-    
+
     $.post("/logout", function(data, status){
       console.log(`DEMO> Clear token cookies: ${status}`);
     });

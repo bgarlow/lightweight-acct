@@ -19,6 +19,12 @@
     navigator.clipboard.writeText(textValue);
   }
   
+  function redirectToOkta(login, authorizeUrl) {
+    copyToClipboard(login);
+    window.location = authorizeUrl;
+  }
+  
+  
 </script>
 <!DOCTYPE html>
 <html>
@@ -28,23 +34,25 @@
     {{> navbar sessionExists=tokensExist logoutUri=logoutUri currentUserId=currentUserId}}  
     </header>
     <main>
-    
-    <div class="jumbotron jumbotron-fluid">
+    <div class="jumbotron">
       <div class="container">
         
         {{#when json.profile.account_type 'eq' "lightweight"}}  
         
         <h1 class="display-4">{{json.profile.account_description}}</h1>
+        <!--<h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.lightweight}}">(click to log in)</a></h1>-->
+        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="redirectToOkta('{{json.profile.login}}', '{{authorizeUrl.lightweight}}');" href="#">(click to log in)</a></h1>
         
         {{/when}}
      
         {{#when json.profile.account_type 'eq' "full"}}  
         
         <h1 class="display-4">{{json.profile.firstName}} {{json.profile.lastName}}</h1>
+        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.full}}">(click to log in)</a></h1>
         
         {{/when}}        
         
-        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.full}}">(click to log in)</a></h1>
+        
         
         <div class="row">
           <div class="col-sm-2">
@@ -83,10 +91,10 @@
       
     {{#when json.profile.account_type 'eq' "lightweight"}}  
       
-    <div class="jumbotron jumbotron-fluid">
-      <div class="container">
-        <p class="lead">Upgrade to a full account</p>
-        
+    <div class="jumbotron">
+        <h3 class="display-5">Upgrade to a full account</h3>
+        <p class="lead">Use the form below to provide additional profile information required for a full account.</p>
+       
       <form method="POST" action="/users">
         <div class="form-group">
           <input type="text" style="display:none" name="userId" id="userId" value="{{json.id}}">
@@ -100,8 +108,6 @@
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>        
         
-        
-      </div>
     </div>      
       
     {{/when}}    
@@ -112,7 +118,7 @@
         <div class="row">
           <div class="col-sm">
             
-            <div class="jumbotron jumbotron-fluid">
+            <div class="jumbotron">
               <div class="container">
                 
                 <h3 class="display-4">{{linkedObject.profile.account_description}}</h3>
@@ -126,7 +132,7 @@
                 
                 {{#when linkedObject.profile.account_type 'eq' "full"}}  
                 
-                <h3 class="display-5">Linked Account: {linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.full}}">{(click to log in)</a></h3>
+                <h3 class="display-5">Linked Account: {{linkedObject.profile.login}}&nbsp;<a onclick="copyToClipboard('{{linkedObject.profile.login}}');" href="{{../authorizeUrl.full}}">{(click to log in)</a></h3>
                 
                 {{/when}}                
                 <div class="row">                
@@ -260,7 +266,7 @@
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>       
-
+      
       
     </main>  
     
