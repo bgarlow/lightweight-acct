@@ -22,46 +22,35 @@
     </header>
     <main>
       
-      <div> 
-        
-        <div class="row">
-          <div class="col-sm-3">
-            Login
-          </div>             
-          <div class="col-sm-2">
-            User ID  
-          </div>          
-          <div class="col-sm-2">
-            Name
-          </div>
-          <div class="col-sm">
-            Account Owner
-          </div>
-        </div>        
-        
-        {{#each usersArray}}
-            
-        <div class="row">
-          <div class="col-sm-3">
-            <a href="#" onclick="selectUser('{{userObject.id}}');">{{userObject.profile.login}}</a>
-          </div>             
-          <div class="col-sm-2">
-            {{userObject.id}}
-          </div>          
-          <div class="col-sm-2">
-            {{userObject.profile.firstName}} {{userObject.profile.lastName}}
-          </div>
-          <div class="col-sm">
-            <a href="#" onclick="selectUser('{{accountOwner.id}}');">{{accountOwner.id}}</a> {{accountOwner.profile.login}}
-          </div>
-        </div>
-        
-        {{/each}}
-      
-      </div>
-      
- 
+   <table class="table table-striped table-light">
 
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Login</th>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Okta ID</th>
+        <th scope="col">Account Type</th>
+        <th scope="col">Parent Account</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    {{#each usersArray}}
+
+    <tr>
+      <td><a href="#" onclick="selectUser('{{userObject.id}}');">{{userObject.profile.login}}</a></td>
+      <td>{{userObject.profile.firstName}} {{userObject.profile.lastName}}</td>    
+      <td>{{userObject.profile.account_description}}</td>
+      <td>{{userObject.id}}</td>
+      <td>{{userObject.profile.account_type}}</td>
+      <td><a href="#" onclick="selectUser('{{accountOwner.id}}');">{{accountOwner.id}}</a> {{accountOwner.profile.login}}</td>
+    </tr>
+
+    {{/each}}
+
+    </tbody>
+    </table>
       
     </main>
   </body>

@@ -90,6 +90,8 @@ app.get("/", async function(req, res) {
   res.render('index', data);
 });
 
+
+
 /**
 *
 * /profile
@@ -100,7 +102,27 @@ app.get("/profile", async function(req, res) {
   let data = {};
   data.tokens = getTokensFromStorage(req, res);
   
-
+  // POST to /userinfo
+  let options = {
+    uri: `${oktaConfig.baseUrl}/oauth2/${oktaConfig.authServerId}/v1/userinfo`,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': `Bearer ${data.tokens.access}`
+    }
+  }
+  
+  console.log(`DEMO> Get /userinfo for the currently logged in user:`);
+  console.log(JSON.stringify(options, undefined, 2));
+  
+  try {
+    let res = await doRequest(options);
+    data.user = JSON.parse(res);
+  } catch(err) {
+    data.err = err;
+  }  
   
   data.tokensExist = tokensExist(req);
   data.logoutUri = oktaConfig.logoutUri;
@@ -308,7 +330,7 @@ app.get("/users", async function(req, res) {
   let data = {};
   
   let options = {
-    uri: `${process.env.OKTA_TENANT}/api/v1/users`,
+    uri: `${process.env.OKTA_TENANT}/api/v1/users?search=profile.account_type eq "full" or profile.account_type eq "lightweight"`,
     method: 'GET',
     headers: {
       'Accept': 'application/json',
@@ -416,7 +438,7 @@ app.get('/users/:userId', async function(req, res) {
  
   let data = {};
   
-  // Get all users
+  // Get user by ID
   let options = {
     uri: `${oktaConfig.baseUrl}/api/v1/users/${currentUserId}`,
     method: 'GET',
@@ -563,7 +585,9 @@ app.get('/lightweightacct', (req, res) => {
   res.render('lightweightacct', data);
 });
 
+
 // OAuth 2.0
+
 
 /**
 *
@@ -712,11 +736,9 @@ app.get('/authorization-code/full', (req, res) => {
       res.status(401).send(`${json.error}: ${json.error_description}`);
       return;
     }
-
-    console.log(json);
     
     const decodedIdToken = jws.decode(json.id_token);
-
+        
     if (!decodedIdToken) {
       res.status(401).send('id_token could not be decoded from response.');
       return;
