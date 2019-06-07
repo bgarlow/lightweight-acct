@@ -48,7 +48,9 @@
         {{#when json.profile.account_type 'eq' "full"}}  
         
         <h1 class="display-4">{{json.profile.firstName}} {{json.profile.lastName}}</h1>
-        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.full}}">(click to log in)</a></h1>
+        <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="redirectToOkta('{{json.profile.login}}', '{{authorizeUrl.full}}');" href="#">(click to log in)</a></h1>
+
+        <!-- <h1 class="display-4">{{json.profile.login}}&nbsp;<a onclick="copyToClipboard('{{json.profile.login}}');" href="{{authorizeUrl.full}}">(click to log in)</a></h1> -->
         
         {{/when}}        
         
