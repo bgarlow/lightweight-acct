@@ -4,6 +4,7 @@ dependencies:
   express: 4.17.1
   hbs: 4.0.4
   jws: 3.2.2
+  prettyjson: 1.2.1
   request: 2.88.0
 packages:
   /accepts/1.3.7:
@@ -95,6 +96,12 @@ packages:
     dev: false
     resolution:
       integrity: sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
+  /colors/1.3.3:
+    dev: false
+    engines:
+      node: '>=0.1.90'
+    resolution:
+      integrity: sha512-mmGt/1pZqYRjMxB1axhTo16/snVZ5krrKkcmMeVKxzECMMXoCgnvTPp10QgHfcbQZw8Dq2jMNG6je4JlWU0gWg==
   /combined-stream/1.0.8:
     dependencies:
       delayed-stream: 1.0.0
@@ -498,6 +505,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=
+  /minimist/1.2.0:
+    dev: false
+    resolution:
+      integrity: sha1-o1AIsg9BOD7sH7kU9M1d95omQoQ=
   /ms/2.0.0:
     dev: false
     resolution:
@@ -545,6 +556,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
+  /prettyjson/1.2.1:
+    dependencies:
+      colors: 1.3.3
+      minimist: 1.2.0
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha1-/P+rQdGcq0365eV15kJGYZsS0ok=
   /proxy-addr/2.0.5:
     dependencies:
       forwarded: 0.1.2
@@ -801,4 +820,5 @@ specifiers:
   express: ^4.17.1
   hbs: ^4.0.4
   jws: ^3.1.4
+  prettyjson: ^1.2.1
   request: ^2.88.0

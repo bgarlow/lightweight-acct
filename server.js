@@ -8,6 +8,14 @@ var cookieParser = require('cookie-parser')
 const http = require('http').Server(app);
 const querystring = require('querystring');
 const jws = require('jws');
+var prettyjson = require('prettyjson');
+
+const prettyJsonOptions = {
+  keysColor: 'blue',
+  dashColor: 'magenta',
+  stringColor: 'white',
+  indent: 5
+}
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
@@ -113,7 +121,7 @@ app.get("/profile", async function(req, res) {
   }
   
   console.log(`DEMO> Get /userinfo for the currently logged in user:`);
-  console.log(JSON.stringify(options, undefined, 2));
+  console.log(prettyjson.render(options, prettyJsonOptions));
   
   try {
     let res = await doRequest(options);
@@ -233,7 +241,7 @@ app.post('/users', async function(req, res) {
   }   
   
   console.log(`DEMO> Creating account:`);
-  console.log(JSON.stringify(options, undefined, 2));    
+  console.log(prettyjson.render(options, prettyJsonOptions));
   
   try {
     let res = await doRequest(options);
@@ -261,7 +269,7 @@ app.post('/users', async function(req, res) {
     }    
     
     console.log(`DEMO> Linking lightweight account to the account owner account:`);
-    console.log(JSON.stringify(options, undefined, 2));      
+    console.log(prettyjson.render(options, prettyJsonOptions));
 
     try {
       let res = await doRequest(options);
@@ -304,7 +312,7 @@ app.get('/revoke/:userId/:clientId/:tokenId', async function(req, res) {
   }  
   
   console.log(`DEMO> Revoking token ${tokenId} for user ${userId} for client ${clientId}`);
-  console.log(JSON.stringify(options, undefined, 2));  
+  console.log(prettyjson.render(options, prettyJsonOptions));
     
   try {
     let res = await doRequest(options);
@@ -338,8 +346,8 @@ app.get("/users", async function(req, res) {
     }
   }
   
-  console.log(`DEMO> Get a list of all users in the Okta tenant:`);
-  console.log(JSON.stringify(options, undefined, 2));
+  console.log(`\nDEMO> Get a list of all users in the Okta tenant:`);
+  console.log(prettyjson.render(options, prettyJsonOptions));
   
   try {
     let res = await doRequest(options);
@@ -348,7 +356,7 @@ app.get("/users", async function(req, res) {
     data = err;
   }  
   
-  console.log(`DEMO> Get account_owner primary relationship for each user (if any):`);
+  console.log(`\nDEMO> Get account_owner primary relationship for each user (if any):`);
   console.log(`DEMO> Sample https://sonos-ciam-oie.oktapreview.com/api/v1/users/{{userId}}/linkedObjects/account_owner`);
     
   let usersArray=[];
@@ -401,8 +409,8 @@ app.get("/users", async function(req, res) {
           }
         }    
 
-        console.log(`DEMO> Get the account owner's Okta profile by following _links.self.href`);
-        console.log(JSON.stringify(options, undefined, 2)); 
+        console.log(`\nDEMO> Get the account owner's Okta profile by following _links.self.href`);
+        console.log(prettyjson.render(options, prettyJsonOptions));
         
         try {
           let res = await doRequest(options);
@@ -448,8 +456,8 @@ app.get('/users/:userId', async function(req, res) {
     }
   }
   
-  console.log(`DEMO> Get user ${currentUserId}:`);
-  console.log(JSON.stringify(options, undefined, 2));
+  console.log(`\nDEMO> Get user ${currentUserId}:`);
+  console.log(prettyjson.render(options, prettyJsonOptions));
   
   try {
     let res = await doRequest(options);
@@ -471,8 +479,8 @@ app.get('/users/:userId', async function(req, res) {
     }
   }
   
-  console.log(`DEMO> Get linked objects associated with ${currentUserId}:`);
-  console.log(JSON.stringify(options, undefined, 2));
+  console.log(`\nDEMO> Get linked objects associated with ${currentUserId}:`);
+  console.log(prettyjson.render(options, prettyJsonOptions));
   
   try {
     let res = await doRequest(options);
@@ -499,8 +507,8 @@ app.get('/users/:userId', async function(req, res) {
       }
     }    
     
-    console.log(`DEMO> Get linked objects profile data from _links.self.href:`);
-    console.log(JSON.stringify(options, undefined, 2));    
+    console.log(`\nDEMO> Get linked objects profile data from _links.self.href:`);
+    console.log(prettyjson.render(options, prettyJsonOptions));
     
     try {
       let res = await doRequest(options);
@@ -533,8 +541,8 @@ app.get('/users/:userId', async function(req, res) {
       }
     }    
     
-    console.log(`DEMO> Get tokens for user ${linkedObject.linkedObject.id} for client ${oktaConfig.clientIdLightweight}`);
-    console.log(JSON.stringify(options, undefined, 2));     
+    console.log(`\nDEMO> Get tokens for user ${linkedObject.linkedObject.id} for client ${oktaConfig.clientIdLightweight}`);
+    console.log(prettyjson.render(options, prettyJsonOptions));
     
     try {
       let res = await doRequest(options);
@@ -597,7 +605,7 @@ app.get('/lightweightacct', (req, res) => {
 */
 app.get('/authorization-code/lightweight', async function(req, res) {
   
-  console.log('DEMO> GET /authorization-code/lightweight');
+  console.log('\nDEMO> GET /authorization-code/lightweight');
   
   let data = {};
   let nonce;
@@ -636,8 +644,8 @@ app.get('/authorization-code/lightweight', async function(req, res) {
     json: true
   }
 
-  console.log('DEMO> GET /authorization-code/callback token endpoint request options:');
-  console.log(options);
+  console.log('\nDEMO> GET /authorization-code/callback token endpoint request options:');
+  console.log(prettyjson.render(options, prettyJsonOptions));
 
   // Request token(s)
   request(options, (err, tokenRes, json) => {
@@ -675,7 +683,7 @@ app.get('/authorization-code/lightweight', async function(req, res) {
     data.tokensExist = true;
     data.logoutUri = oktaConfig.logoutUri;    
 
-    console.log('DEMO> Tokens received and validated');
+    console.log('\nDEMO> Tokens received and validated');
     res.render('landing', data);
 
   });
@@ -688,7 +696,7 @@ app.get('/authorization-code/lightweight', async function(req, res) {
 **/
 app.get('/authorization-code/full', async function(req, res) {
   
-  console.log('DEMO> GET /authorization-code/full');
+  console.log('\nDEMO> GET /authorization-code/full');
 
   let data = {};
   let nonce;
@@ -727,8 +735,8 @@ app.get('/authorization-code/full', async function(req, res) {
     json: true
   }
 
-  console.log('DEMO> GET /authorization-code/full token endpoint request options:');
-  console.log(options);
+  console.log('\nDEMO> GET /authorization-code/full token endpoint request options:');
+  console.log(prettyjson.render(options, prettyJsonOptions));
 
   // Request token(s)
   request(options, (err, tokenRes, json) => {
@@ -765,7 +773,7 @@ app.get('/authorization-code/full', async function(req, res) {
     data.tokensExist = true;
     data.logoutUri = oktaConfig.logoutUri;    
     
-    console.log('DEMO> Tokens received and validated');
+    console.log('\nDEMO> Tokens received and validated');
     res.render('landing', data);
 
   });
@@ -806,8 +814,8 @@ app.get('/logout', async function(req, res) {
     }
   }
 
-  console.log(`DEMO> Revoking all tokens for ${oktaConfig.clientIdLightweight}`);
-  console.log(options);
+  console.log(`\nDEMO> Revoking all tokens for ${oktaConfig.clientIdLightweight}`);
+  console.log(prettyjson.render(options, prettyJsonOptions));
 
   try {
     let res = await doRequest(options);
@@ -827,8 +835,8 @@ app.get('/logout', async function(req, res) {
     }
   }
 
-  console.log(`DEMO> Revoking all tokens for ${oktaConfig.clientIdFull}`);
-  console.log(options);
+  console.log(`\nDEMO> Revoking all tokens for ${oktaConfig.clientIdFull}`);
+  console.log(prettyjson.render(options, prettyJsonOptions));
 
   try {
     let res = await doRequest(options);
